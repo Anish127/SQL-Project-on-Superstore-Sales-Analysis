@@ -29,7 +29,9 @@ I have been assigned the responsibility of examining the sales data in order to 
 6. California has the highest segment sales; South Dakota has the lowest recommended to take steps same as California
 7. Sales growth has decreased by 9% in 2022
 
+
 **Recommendations to improve the business**:
+
 
 •	Following the latest trends in the market
 
