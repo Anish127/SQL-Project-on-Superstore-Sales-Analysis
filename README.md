@@ -32,7 +32,11 @@ I have been assigned the responsibility of examining the sales data in order to 
 **Recommendations to improve the business**:
 
 •	Following the latest trends in the market
+
 •	Taking necessary steps to improve the products quality and service
+
 •	Special offers during Christmas
+
 •	Advertising in magazines and newspapers 
+
 •	Using social media platform
