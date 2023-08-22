@@ -1,0 +1,91 @@
+/*1 What is the percentage of total orders were shipped on the same date?*/
+
+select count(*)as Total_orders,
+sum(case when Order_Date=Ship_Date then 1 else 0 end)as Same_ship,
+round(100.0*sum(case when Order_Date=Ship_Date then 1 else 0 end)/count(*),2)as Perc_Orders from Sales
+
+
+/*2. Name top 3 customers by highest amount of sale.*/
+select top 3 customer_name,sum(amount)as Total_amount from Sales
+group by customer_name
+order by Total_amount desc
+
+
+/*3. Find the top 5 products with the highest average sales.*/
+
+select top 5 Product_Name,AVG(amount)as Avg_sales from Sales
+group by product_name
+order by Avg_sales desc
+
+ /*4.Find the Average number of days to place the order and the total no. of orders for each ship mode  */
+ 
+ select Ship_Mode,count(*)as Total_orders,
+ avg(DATEDIFF(Day,Order_Date,Ship_Date))as Number_of_days   from Sales
+ group by Ship_Mode
+
+ /*5.Give the name of customers who ordered highest and lowest order*/ 
+ 
+ with cte as((select Customer_name,count(Order_ID)as Total_Orders,
+ rank() over(order by count(Order_id) desc)as rn from Sales
+ group by Customer_name)
+ union all
+ (select Customer_name,count(Order_ID)as Total_Orders,
+ rank() over(order by count(Order_id) asc, customer_name)as rn from Sales
+ group by Customer_name)) 
+ 
+ select  customer_name,Total_orders
+  from cte
+  where rn=1
+ group by customer_name,total_orders
+
+
+ /*6. In which region sales of Office supllies,Technology is more*/
+ select  region, count(*)as Total_orders,floor(sum(amount))as Total_amount from Sales
+ where category in('Office Supplies','Technology')
+ group by region
+ order by Total_amount desc
+
+
+ 
+ /*7. select top 5 city by sub_category sale*/
+ with cte as(select City,sub_category,sum(amount)as Total_sales,
+ rank() over(order by sum(amount) desc)as rn from Sales
+ group by City,sub_category)
+ select * from cte
+ where rn<=5
+
+/*8. Find the states which is having highest total sales by segment ?*/
+ 
+ with cte as
+(select state, segment, floor(sum(Amount)) as total_sales,
+rank() over(partition by segment order by sum(amount) desc)as rn
+from  Sales
+group by state, segment)
+select state, segment, total_sales from cte
+where rn=1
+
+/*9.Find all the customers who individually placed orders on three consecutive days, where the total purchase amount for each day is more than 50 in value.*/
+with cte as
+(select distinct customer_id, customer_name, order_date, round(sum(amount),2) as total_sales,
+	lead(Order_Date)over(partition by customer_id order by order_date) as next_day
+from sales
+group by customer_id, Customer_Name,order_date
+having round(sum(amount),2)>=50),
+cte2 as
+(select distinct Customer_ID, customer_name, Order_Date, next_day, lead(next_Day)over(partition by customer_id order by next_day) as n_next_day
+from cte)
+select distinct a.customer_name, a.order_date, a.next_day, a.n_next_day
+from cte2 as a
+join cte2 as b
+on a.customer_id=b.customer_id and DATEDIFF(day, a.order_date, b.next_day)=1
+join cte2 as c
+on b.customer_id=c.customer_id and DATEDIFF(day, b.next_day, c.n_next_day)=1
+
+
+/* 10)Year wise sales growth of Superstore*/
+with cte as(select top 5 datepart(year,order_date)as year,sum(amount)as Total_amount
+from Sales 
+group by datepart(year,order_date)
+order by year asc)
+select a.year,floor(a.Total_amount)as Total_Amount,round(100.0*((a.Total_amount-b.total_amount)/b.total_amount),2)as Total_perc from cte a,cte b
+where a.year=b.year+1
